@@ -1,4 +1,3 @@
-// app/emergency/help/page.tsx
 'use client';
 
 import { 
@@ -8,16 +7,25 @@ import {
   CheckCircle2,
   Shield,
   MapPin,
-  MessageCircle
+  MessageCircle,
+  Bell
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function EmergencyHelpPage() {
   const [countdown, setCountdown] = useState<number>(480); // 8 minutes in seconds
   const [isEmergencyActive, setIsEmergencyActive] = useState<boolean>(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
+  const [checkInCountdown, setCheckInCountdown] = useState<number>(600); // 10 minutes in seconds
+  const [showCheckInPrompt, setShowCheckInPrompt] = useState<boolean>(false);
+  
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const checkInRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationRef = useRef<Notification | null>(null);
+  
+  // FIX: Create a Ref to hold the recursive function to avoid "access before declaration" errors
+  const scheduleNextCheckInRef = useRef<(seconds?: number) => void>(() => {});
 
   const emergencyChecklist = [
     { id: 1, task: "Move to a warm, comfortable area", description: "Find a warm space and use blankets if needed" },
@@ -33,59 +41,68 @@ export default function EmergencyHelpPage() {
     { name: "James Wilson", relationship: "Emergency Contact", phone: "+1 (555) 456-7890", type: "friend" }
   ];
 
-  // Request notification permission on component mount
-  useEffect(() => {
-    const initializeNotifications = async () => {
-      if ('Notification' in window) {
-        if (Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          setNotificationPermission(permission);
-        } else {
-          // Use setTimeout to avoid synchronous state update in effect
-          setTimeout(() => {
-            setNotificationPermission(Notification.permission);
-          }, 0);
-        }
-      }
-    };
+  // --- 1. Basic State Helpers (No external dependencies) ---
 
-    initializeNotifications();
+  const saveEmergencyState = useCallback((active: boolean, remainingTime: number, tasks: Set<number>) => {
+    try {
+      const state = {
+        isActive: active,
+        endTime: active ? Date.now() + (remainingTime * 1000) : null,
+        completedTasks: Array.from(tasks),
+        lastUpdated: Date.now()
+      };
+      localStorage.setItem('sickleSense_emergencyState', JSON.stringify(state));
+    } catch (error) {
+      console.error('Error saving emergency state:', error);
+    }
   }, []);
 
-  // Start emergency countdown
-  const startEmergency = () => {
-    if (!isEmergencyActive) {
-      setIsEmergencyActive(true);
-      setCountdown(480); // Reset to 8 minutes
-      
-      // Send initial notification
-      if (notificationPermission === 'granted') {
-        new Notification('🚨 Sickle Sense Emergency Alert', {
-          body: 'Emergency protocol activated. Caregivers will be notified in 8 minutes if no response.',
-          icon: '/icon.png',
-          tag: 'emergency-start'
-        });
-      }
-
-      // Start countdown
-      countdownRef.current = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            if (countdownRef.current) {
-              clearInterval(countdownRef.current);
-            }
-            escalateEmergency();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  const saveCheckInState = useCallback((nextCheckInTime: number) => {
+    try {
+      const state = {
+        nextCheckIn: nextCheckInTime,
+        lastCheckIn: Date.now()
+      };
+      localStorage.setItem('sickleSense_checkInState', JSON.stringify(state));
+    } catch (error) {
+      console.error('Error saving check-in state:', error);
     }
-  };
+  }, []);
 
-  // Escalate emergency after 8 minutes
-  const escalateEmergency = () => {
-    // Send escalation notification
+  const clearSavedState = useCallback(() => {
+    try {
+      localStorage.removeItem('sickleSense_emergencyState');
+      localStorage.removeItem('sickleSense_checkInState');
+    } catch (error) {
+      console.error('Error clearing saved state:', error);
+    }
+  }, []);
+
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  // --- 2. Action Logic (Building up dependencies) ---
+
+  const escalateToCaregivers = useCallback((reason: string) => {
+    console.log(`Escalating to caregivers: ${reason}`);
+    
+    if (notificationPermission === 'granted') {
+      new Notification('🚨 URGENT: Check-in Missed', {
+        body: `Patient missed check-in: ${reason}. Please check on them immediately.`,
+        icon: '/icon.png',
+        tag: 'escalation',
+        requireInteraction: true
+      });
+    }
+
+    // In a real app, this would be an API call
+    alert(`Emergency escalated! Caregivers have been notified because: ${reason}`);
+  }, [notificationPermission]);
+
+  const escalateEmergency = useCallback(() => {
     if (notificationPermission === 'granted') {
       new Notification('🚨 URGENT: Emergency Escalation', {
         body: 'Patient has not responded to emergency alert. Immediate check required!',
@@ -95,21 +112,210 @@ export default function EmergencyHelpPage() {
       });
     }
 
-    // Here you would typically call your backend to notify caregivers
-    console.log('Emergency escalated - notifying caregivers');
-    
-    // Show alert to user
-    alert('Emergency has been escalated! Your caregivers have been notified to check on you immediately.');
-  };
+    escalateToCaregivers('Patient did not respond to emergency protocol');
+    clearSavedState();
+  }, [notificationPermission, escalateToCaregivers, clearSavedState]);
 
-  // Cancel emergency
-  const cancelEmergency = () => {
+  const stopPeriodicCheckIns = useCallback(() => {
+    if (checkInRef.current) {
+      clearInterval(checkInRef.current);
+      checkInRef.current = null;
+    }
+    if (notificationRef.current) {
+      notificationRef.current.close();
+    }
+    clearSavedState();
+  }, [clearSavedState]);
+
+  // --- 3. Complex Workflows (Dependent on Actions) ---
+
+  const startEmergencyCountdown = useCallback((initialTime: number = 480) => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+
+    setCountdown(initialTime);
+    saveEmergencyState(true, initialTime, completedTasks);
+
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        const newTime = prev - 1;
+        saveEmergencyState(true, newTime, completedTasks);
+        
+        if (newTime <= 1) {
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+          }
+          escalateEmergency();
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+  }, [completedTasks, saveEmergencyState, escalateEmergency]);
+
+  const startEmergency = useCallback(() => {
+    if (!isEmergencyActive) {
+      setIsEmergencyActive(true);
+      setShowCheckInPrompt(false);
+      stopPeriodicCheckIns();
+      
+      if (notificationPermission === 'granted') {
+        new Notification('🚨 Sickle Sense Emergency Alert', {
+          body: 'Emergency protocol activated. Caregivers will be notified in 8 minutes if no response.',
+          icon: '/icon.png',
+          tag: 'emergency-start'
+        });
+      }
+
+      startEmergencyCountdown(480);
+    }
+  }, [isEmergencyActive, notificationPermission, stopPeriodicCheckIns, startEmergencyCountdown]);
+
+  const handleNotificationClick = useCallback(() => {
+    setShowCheckInPrompt(true);
+    setCheckInCountdown(120); // 2 minutes to respond
+    startEmergency(); 
+  }, [startEmergency]);
+
+  const sendCheckInNotification = useCallback(() => {
+    if (notificationPermission === 'granted' && !isEmergencyActive) {
+      if (notificationRef.current) {
+        notificationRef.current.close();
+      }
+
+      notificationRef.current = new Notification('👋 Sickle Sense Check-in', {
+        body: 'How are you feeling right now? Tap to respond.',
+        icon: '/icon.png',
+        tag: 'check-in',
+        requireInteraction: true,
+      });
+
+      notificationRef.current.onclick = () => {
+        handleNotificationClick();
+        notificationRef.current?.close();
+      };
+
+      notificationRef.current.onclose = () => {
+        setTimeout(() => {
+          if (!isEmergencyActive && !showCheckInPrompt) {
+            escalateToCaregivers('User did not respond to check-in notification');
+          }
+        }, 2 * 60 * 1000); // 2 minutes
+      };
+
+      setShowCheckInPrompt(true);
+      setCheckInCountdown(120); 
+    }
+  }, [notificationPermission, isEmergencyActive, showCheckInPrompt, escalateToCaregivers, handleNotificationClick]);
+
+  // FIX: Modified to use Ref for recursion
+  const scheduleNextCheckIn = useCallback((seconds: number = 600) => {
+    if (checkInRef.current) {
+      clearInterval(checkInRef.current);
+    }
+
+    const nextCheckInTime = Date.now() + (seconds * 1000);
+    saveCheckInState(nextCheckInTime);
+
+    checkInRef.current = setTimeout(() => {
+      sendCheckInNotification();
+      // Call the Ref instead of the function directly to allow recursion
+      scheduleNextCheckInRef.current(); 
+    }, seconds * 1000);
+  }, [sendCheckInNotification, saveCheckInState]);
+
+  // FIX: Keep the Ref updated with the latest version of the function
+  useEffect(() => {
+    scheduleNextCheckInRef.current = scheduleNextCheckIn;
+  }, [scheduleNextCheckIn]);
+
+  const startPeriodicCheckIns = useCallback(() => {
+    scheduleNextCheckIn(1); 
+  }, [scheduleNextCheckIn]);
+
+  // --- 4. Initialization Logic ---
+
+  const loadSavedState = useCallback(() => {
+    try {
+      const savedEmergency = localStorage.getItem('sickleSense_emergencyState');
+      const savedCheckIn = localStorage.getItem('sickleSense_checkInState');
+      
+      if (savedEmergency) {
+        const emergencyState = JSON.parse(savedEmergency);
+        if (emergencyState.isActive && emergencyState.endTime) {
+          const now = Date.now();
+          const endTime = emergencyState.endTime;
+          const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+          
+          if (remaining > 0) {
+            setIsEmergencyActive(true);
+            setCountdown(remaining);
+            setCompletedTasks(new Set(emergencyState.completedTasks || []));
+            startEmergencyCountdown(remaining);
+          } else {
+            escalateToCaregivers('Emergency timer expired while page was closed');
+          }
+        }
+      }
+
+      if (savedCheckIn) {
+        const checkInState = JSON.parse(savedCheckIn);
+        if (checkInState.nextCheckIn && checkInState.nextCheckIn > Date.now()) {
+          const timeUntilNext = Math.floor((checkInState.nextCheckIn - Date.now()) / 1000);
+          if (timeUntilNext > 0) {
+            scheduleNextCheckIn(timeUntilNext);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved state:', error);
+    }
+  }, [startEmergencyCountdown, escalateToCaregivers, scheduleNextCheckIn]);
+
+  // --- 5. UI Event Handlers ---
+
+  const handleImOkResponse = useCallback(() => {
+    setShowCheckInPrompt(false);
+    if (notificationRef.current) {
+      notificationRef.current.close();
+    }
+    
+    if (notificationPermission === 'granted') {
+      new Notification('✅ Check-in Complete', {
+        body: 'Thank you for confirming you\'re OK!',
+        icon: '/icon.png',
+        tag: 'check-in-ok'
+      });
+    }
+
+    scheduleNextCheckIn();
+  }, [notificationPermission, scheduleNextCheckIn]);
+
+  const handleNeedHelpResponse = useCallback(() => {
+    setShowCheckInPrompt(false);
+    startEmergency();
+    
+    if (notificationPermission === 'granted') {
+      new Notification('🚨 Help is on the way!', {
+        body: 'Emergency protocol activated. Caregivers have been notified.',
+        icon: '/icon.png',
+        tag: 'check-in-help'
+      });
+    }
+  }, [notificationPermission, startEmergency]);
+
+  const cancelEmergency = useCallback(() => {
     setIsEmergencyActive(false);
     setCompletedTasks(new Set());
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
     }
+    
+    saveEmergencyState(false, 0, new Set());
+    
+    startPeriodicCheckIns();
     
     if (notificationPermission === 'granted') {
       new Notification('✅ Emergency Cancelled', {
@@ -118,10 +324,9 @@ export default function EmergencyHelpPage() {
         tag: 'emergency-cancelled'
       });
     }
-  };
+  }, [notificationPermission, startPeriodicCheckIns, saveEmergencyState]);
 
-  // Toggle task completion
-  const toggleTask = (taskId: number) => {
+  const toggleTask = useCallback((taskId: number) => {
     setCompletedTasks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(taskId)) {
@@ -129,16 +334,49 @@ export default function EmergencyHelpPage() {
       } else {
         newSet.add(taskId);
       }
+      saveEmergencyState(isEmergencyActive, countdown, newSet);
       return newSet;
     });
-  };
+  }, [isEmergencyActive, countdown, saveEmergencyState]);
 
-  // Format time for display
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // --- 6. Effects ---
+
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          setNotificationPermission(permission);
+          if (permission === 'granted') {
+            startPeriodicCheckIns();
+          }
+        } else {
+          setTimeout(() => {
+            setNotificationPermission(Notification.permission);
+            if (Notification.permission === 'granted') {
+              startPeriodicCheckIns();
+            }
+          }, 0);
+        }
+      }
+    };
+
+    setTimeout(() => {
+      loadSavedState();
+    }, 0);
+    initializeNotifications();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('fromNotification') === 'true') {
+      setTimeout(() => {
+        handleNotificationClick();
+      }, 0);
+    }
+
+    return () => {
+      stopPeriodicCheckIns();
+    };
+  }, [startPeriodicCheckIns, stopPeriodicCheckIns, handleNotificationClick, loadSavedState]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -146,11 +384,63 @@ export default function EmergencyHelpPage() {
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
       }
+      stopPeriodicCheckIns();
     };
-  }, []);
+  }, [stopPeriodicCheckIns]);
+
+  // Check-in countdown effect
+  useEffect(() => {
+    if (showCheckInPrompt && checkInCountdown > 0) {
+      const timer = setInterval(() => {
+        setCheckInCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            if (!isEmergencyActive) {
+              escalateToCaregivers('User did not respond to check-in prompt');
+            }
+            setShowCheckInPrompt(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [showCheckInPrompt, checkInCountdown, isEmergencyActive, escalateToCaregivers]);
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Check-in Prompt Overlay */}
+      {showCheckInPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl p-6 border border-border max-w-md w-full">
+            <div className="text-center mb-6">
+              <Bell className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">How are you feeling?</h2>
+              <p className="text-muted-foreground mb-4">
+                Please let us know you&apos;re OK. Responding in {formatTime(checkInCountdown)}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={handleImOkResponse}
+                className="bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              >
+                I&apos;m OK
+              </button>
+              <button
+                onClick={handleNeedHelpResponse}
+                className="bg-destructive text-destructive-foreground py-3 rounded-lg font-semibold hover:bg-destructive/90 transition-colors"
+              >
+                Need Help
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Emergency Header */}
       <div className="bg-destructive text-destructive-foreground py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -336,7 +626,7 @@ export default function EmergencyHelpPage() {
                   Enable Notifications
                 </h3>
                 <p className="text-yellow-700 dark:text-yellow-400 text-sm">
-                  To receive emergency alerts and countdown notifications, please enable browser notifications for this site.
+                  To receive check-in reminders and emergency alerts, please enable browser notifications for this site.
                 </p>
                 <button
                   onClick={() => Notification.requestPermission().then(setNotificationPermission)}
