@@ -56,7 +56,7 @@ export default function HomePage() {
         <div className="max-w-7xl grid md:grid-cols-2 gap-2 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-left">
             
-            <p className="text-2xl max-w-prose text-muted-foreground mb-8 mx-auto">
+            <p className="text-2xl font-bold max-w-prose mb-8 mx-auto">
               Monitor, Predict & Stay Ahead of Pain Crises
             </p>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
@@ -78,8 +78,8 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="w-full h-full justify-center items-center">
-           <div className="w-[150px] h-[150px] rounded-full bg-[#F8EBFF]"/>
+          <div className="w-full h-full flex justify-center items-center">
+           <div className="w-[250px] h-[250px] rounded-full bg-[#F8EBFF]"/>
          </div>
         </div>
       </section>
