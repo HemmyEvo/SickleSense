@@ -78,7 +78,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="w-full h-full flex justify-center items-center">
+          <div className="w-full h-full hidden md:flex justify-center items-center">
            <div className="w-[250px] h-[250px] rounded-full bg-[#F8EBFF]"/>
          </div>
         </div>
