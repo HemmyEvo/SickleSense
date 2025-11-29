@@ -52,24 +52,18 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-linear-to-br from-background to-muted py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex justify-center items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">SS</span>
-              </div>
-              <h1 className="text-5xl font-bold">Sickle Sense</h1>
-            </div>
-            <p className="text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Predict and prevent sickle cell pain crises with AI-powered early warnings
+      <section className="relative py-20">
+        <div className="max-w-7xl grid md:grid-cols-2 gap-2 mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-left">
+            
+            <p className="text-2xl max-w-prose text-muted-foreground mb-8 mx-auto">
+              Monitor, Predict & Stay Ahead of Pain Crises
             </p>
             <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Take control of your health with personalized insights, emergency alerts, 
-              and proactive crisis prevention.
+              Take control of your health with personalized insights, emergency alerts, and proactive crisis prevention.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-start items-center">
               <Link 
                 href="/signup" 
                 className="bg-primary text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary/90 transition-colors shadow-lg"
@@ -84,6 +78,9 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+          <div className="w-full h-full justify-center items-center">
+           <div className="w-[150px] h-[150px] rounded-full bg-[#F8EBFF]"/>
+         </div>
         </div>
       </section>
 
@@ -108,9 +105,9 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">How Sickle Sense Helps You</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <div className="text-left max-w-prose mb-16">
+            <h2 className="text-xl font-bold mb-4">How Sickle Sense Helps You</h2>
+            <p className="text-md text-muted-foreground max-w-3xl mx-auto">
               From early detection to emergency support, we&apos;re with you every step of the way
             </p>
           </div>
