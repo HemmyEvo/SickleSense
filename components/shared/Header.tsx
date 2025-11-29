@@ -45,7 +45,7 @@ export default function Header({ user }: HeaderProps) {
                   href="/dashboard" 
                   className={`text-sm font-medium transition-colors ${
                     pathname.startsWith('/dashboard') 
-                      ? 'text-white font-semibold' 
+                      ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
                 >
@@ -55,7 +55,7 @@ export default function Header({ user }: HeaderProps) {
                   href="/health-trends" 
                   className={`text-sm font-medium transition-colors ${
                     pathname.startsWith('/health-trends') 
-                      ? 'text-white font-semibold' 
+                      ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
                 >
@@ -65,7 +65,7 @@ export default function Header({ user }: HeaderProps) {
                   href="/tips" 
                   className={`text-sm font-medium transition-colors ${
                     pathname === '/tips' 
-                      ? 'text-white font-semibold' 
+                      ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
                 >
@@ -79,7 +79,7 @@ export default function Header({ user }: HeaderProps) {
                   href="/how-it-works" 
                   className={`text-sm font-medium transition-colors ${
                     pathname === '/how-it-works' 
-                      ? 'text-white font-semibold' 
+                      ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
                 >
@@ -89,7 +89,7 @@ export default function Header({ user }: HeaderProps) {
                   href="/tips" 
                   className={`text-sm font-medium transition-colors ${
                     pathname === '/tips' 
-                      ? 'text-white font-semibold' 
+                      ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
                 >
