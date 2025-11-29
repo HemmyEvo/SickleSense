@@ -22,7 +22,7 @@ export default function Header({ user }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="bg-black dark:bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-white dark:bg-black shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
@@ -30,7 +30,7 @@ export default function Header({ user }: HeaderProps) {
           <div className="shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               
-              <span className="text-xl font-extrabold text-primary">
+              <span className="text-xl font-extrabold ">
                 SickleSense
               </span>
             </Link>
