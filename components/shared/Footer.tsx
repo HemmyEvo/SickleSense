@@ -14,11 +14,9 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="md:col-span-1">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-secondary font-bold text-sm">SS</span>
-              </div>
+      
               <div>
-                <span className="text-xl font-bold text-primary">Sickle Sense</span>
+                <span className="text-xl font-bold text-primary">SickleSense</span>
                 <p className=" text-sm mt-1">
                   Predict. Prevent. Protect.
                 </p>

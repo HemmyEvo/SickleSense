@@ -1,6 +1,7 @@
 // app/dashboard/page.tsx
 'use client';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Activity, 
   TrendingUp, 
@@ -9,10 +10,11 @@ import {
   Clock,
   User,
   Droplets,
-  Brain
+  Brain,
+  User2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function DashboardPage() {
   const [riskLevel, setRiskLevel] = useState<'low' | 'medium' | 'high'>('low');
@@ -88,24 +90,16 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back! Here&apos;s your health overview.</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/emergency/help" 
-                className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg font-medium hover:bg-destructive/90 transition-colors flex items-center gap-2"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                Emergency
-              </Link>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-5 lg:px-8 py-6">
+      <div className="flex items-center space-x-4">
+        <Avatar>
+          <AvatarFallback>
+            <User2 />
+          </AvatarFallback>
+        </Avatar>
+        <p className='font-bold text-xl'>Welcome User!</p>
+      </div>
+      <p>Here&apos;s your health overview.</p>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

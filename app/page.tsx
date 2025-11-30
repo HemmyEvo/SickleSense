@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   AlertTriangle
 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function HomePage() {
   const [activeFeature, setActiveFeature] = useState(0);
@@ -78,8 +79,13 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="w-full h-full hidden md:flex justify-center items-center">
-           <div className="w-[250px] h-[250px] rounded-full bg-[#F8EBFF]"/>
+
+          {/* Hero section image */}
+          <div className="w-full h-full hidden md:flex justify-center relative items-center">
+            <div className="relative z-1 w-[300px] h-[300px] overflow-hidden rounded-full">
+              <Image src={'/hero.jpg'} alt='hero-image' fill className='w-full object-cover object-center h-full' />
+            </div>
+           <div className="w-[250px] absolute  right-24  -bottom-4 h-[250px] rounded-full bg-[#F8EBFF] dark:bg-[#200032]"/>
          </div>
         </div>
       </section>
@@ -122,7 +128,7 @@ export default function HomePage() {
                     key={index}
                     className={`p-6 rounded-lg cursor-pointer transition-all border ${
                       activeFeature === index
-                        ? 'bg-primary text-primary-foreground shadow-lg transform scale-105 border-primary'
+                        ? 'bg-primary text-primary-foreground shadow-lg border-primary'
                         : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground border-border'
                     }`}
                     onMouseEnter={() => setActiveFeature(index)}
@@ -256,7 +262,7 @@ export default function HomePage() {
       <section className="py-20 bg-muted">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Simple & Effective</h2>
+            <h2 className="text-4xl font-bold mb-4">SickleSense is Simple and Effective</h2>
             <p className="text-xl text-muted-foreground">Three easy steps to better health management</p>
           </div>
 

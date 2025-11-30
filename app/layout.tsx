@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "../components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import CheckInManager from "@/components/shared/CheckInManager"; // Import the new component
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -13,8 +14,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Sickle Sense",
-  description:
-    "Sickle Sense is a modern digital platform built to empower sickle cell patients, caregivers, and healthcare professionals. It provides personalized health insights, crisis tracking tools, educational resources, and a supportive community environment to help users better understand, manage, and navigate daily life with sickle cell disease. Our mission is to make care easier, improve communication, and enhance the overall well-being of everyone affected by sickle cell.",
+  description: "Sickle Sense is a modern digital platform built to empower sickle cell patients.",
 };
 
 export default function RootLayout({
@@ -37,6 +37,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Include the CheckInManager globally */}
+          <CheckInManager />
+          
           <Header user={user} />
           {children}
           <Footer />
