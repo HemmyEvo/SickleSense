@@ -18,6 +18,10 @@ class User(db.Model):
     role = db.Column(db.String(20), default='patient')  # patient, caregiver
     is_admin = db.Column(db.Boolean, default=False)  # Add this line
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    haemoglobin_level = db.Column(db.Float)  # Store haemoglobin levels
+    oxygen_saturation = db.Column(db.Float)  # Store oxygen levels
+    previously_admitted = db.Column(db.Boolean, default=False)  # Admission history
+    last_medical_check = db.Column(db.DateTime)
     
     # Relationships
     health_logs = db.relationship('HealthLog', backref='user', lazy=True)

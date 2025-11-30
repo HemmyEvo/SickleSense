@@ -1,10 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager,  create_access_token
+from flask_jwt_extended import JWTManager, create_access_token
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+
 
 load_dotenv()
 
@@ -28,21 +29,24 @@ def create_app():
     jwt.init_app(app)
     cors.init_app(app)
     
+    # Load ML models when app starts
+    with app.app_context():
+        from app.services.ml_service import MLService
+        MLService.load_models()
+    
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.health import health_bp
     from app.routes.prediction import prediction_bp
     from app.routes.notifications import notifications_bp
     from app.routes.admin import admin_bp
+
     
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(health_bp, url_prefix='/api')
     app.register_blueprint(prediction_bp, url_prefix='/api')
     app.register_blueprint(notifications_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')    
-    # Add a test route
-    @app.route('/api/test')
-    def test():
-        return {"status": "OK", "message": "API is working!"}
+
     
     return app
