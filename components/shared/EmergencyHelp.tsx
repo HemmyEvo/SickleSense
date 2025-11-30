@@ -9,15 +9,11 @@ import {
   MapPin,
   MessageCircle,
 } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-/**
- * COMPONENT 1: The Content
- * Contains all the logic, state, and UI.
- * It is not exported as default directly because it uses useSearchParams.
- */
-function EmergencyHelpContent() {
+
+export function EmergencyHelpContent() {
   const searchParams = useSearchParams();
   const [countdown, setCountdown] = useState<number>(480); // 8 minutes
   const [isEmergencyActive, setIsEmergencyActive] = useState<boolean>(false);
@@ -249,25 +245,5 @@ function EmergencyHelpContent() {
         )}
       </div>
     </div>
-  );
-}
-
-/**
- * COMPONENT 2: The Wrapper
- * This is the component Next.js loads. It safely wraps the content in Suspense
- * so that useSearchParams doesn't break the build.
- */
-export default function EmergencyHelpPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center">
-          <AlertTriangle className="w-12 h-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Loading emergency protocols...</p>
-        </div>
-      </div>
-    }>
-      <EmergencyHelpContent />
-    </Suspense>
   );
 }
