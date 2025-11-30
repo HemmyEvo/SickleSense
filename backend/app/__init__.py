@@ -16,14 +16,14 @@ cors = CORS()
 
 def create_app():
     app = Flask(__name__)
-    
-    # Configuration
+
+    # Config
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///sickle_cell.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
-    
-    # Initialize extensions
+
+    # Extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
@@ -46,7 +46,10 @@ def create_app():
     app.register_blueprint(health_bp, url_prefix='/api')
     app.register_blueprint(prediction_bp, url_prefix='/api')
     app.register_blueprint(notifications_bp, url_prefix='/api')
-    app.register_blueprint(admin_bp, url_prefix='/api/admin')    
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
-    
+    @app.route('/api/test')
+    def test():
+        return {"status": "OK"}
+
     return app
