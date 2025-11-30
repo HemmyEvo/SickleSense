@@ -108,17 +108,12 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white py-8">
+    <div className="min-h-screen  py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 text-xl font-bold mb-4">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-gray-900 font-bold text-sm">SS</span>
-            </div>
-            <span>Sickle Sense</span>
-          </Link>
+   
           <h1 className="text-3xl font-bold">Create Your Account</h1>
           <p className="text-gray-400 mt-2">Join Sickle Sense to track your health and prevent crises</p>
         </div>
@@ -131,7 +126,7 @@ export default function SignupPage() {
         />
 
         {/* Form Steps */}
-        <div className="bg-gray-800 rounded-lg p-6 mt-6">
+        <div className="bg-secondary-foreground rounded-lg p-6 mt-6">
           {currentStep === 1 && (
             <SignupForm 
               formData={formData}
@@ -200,7 +195,7 @@ export default function SignupPage() {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="px-6 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  className="px-6 py-3  text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   Create Account
                 </button>
@@ -213,7 +208,7 @@ export default function SignupPage() {
         <div className="text-center mt-6">
           <p className="text-gray-400">
             Already have an account?{' '}
-            <Link href="/login" className="text-white hover:underline">
+            <Link href="/login" className="text-secondary-foreground hover:underline">
               Sign in
             </Link>
           </p>

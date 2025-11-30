@@ -51,13 +51,13 @@ export default function CaregiverDetailsForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Caregiver Information</h2>
+        <h2 className="text-2xl text-primary-foreground font-bold">Caregiver Information</h2>
         <p className="text-gray-400 mt-2">Tell us about your caregiving role</p>
       </div>
 
       {/* Full Name */}
       <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor="fullName" className="block text-sm font-medium text-primary-foreground mb-2">
           Your Full Name
         </label>
         <input
@@ -68,14 +68,14 @@ export default function CaregiverDetailsForm({
           onChange={(e) => updateFormData({
             personalInfo: { ...formData.personalInfo, fullName: e.target.value }
           })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+          className="w-full px-4 py-3 bg-primary-foreground border border-primary-foreground rounded-lg text-primary-forebg-primary-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-forebg-primary-foreground focus:border-transparent"
           placeholder="Enter your full name"
         />
       </div>
 
       {/* Relationship to Patient */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-3">
+        <label className="block text-sm font-medium text-primary-foreground mb-3">
           Your Relationship to Patient
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -87,8 +87,8 @@ export default function CaregiverDetailsForm({
               key={relationship}
               className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
                 formData.caregiverInfo?.relationship === relationship
-                  ? 'border-white bg-gray-700'
-                  : 'border-gray-600 hover:border-gray-400'
+                ? 'border-secondary dark:bg-black bg-white'
+                  : 'border-primary text-primary-foreground hover:border-secondary/70'
               }`}
             >
               <input
@@ -99,9 +99,9 @@ export default function CaregiverDetailsForm({
                 onChange={(e) => updateFormData({
                   caregiverInfo: { ...formData.caregiverInfo, relationship: e.target.value }
                 })}
-                className="text-white focus:ring-white focus:ring-offset-gray-800"
+                className="text-primary-forebg-primary-foreground focus:ring-primary-forebg-primary-foreground focus:ring-offset-gray-800"
               />
-              <span className="ml-2 text-white text-sm">{relationship}</span>
+              <span className="ml-2 text-primary-forebg-primary-foreground text-sm">{relationship}</span>
             </label>
           ))}
         </div>
@@ -109,7 +109,7 @@ export default function CaregiverDetailsForm({
 
       {/* Phone Number */}
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor="phone" className="block text-sm font-medium text-primary-foreground mb-2">
           Phone Number
         </label>
         <input
@@ -120,7 +120,7 @@ export default function CaregiverDetailsForm({
           onChange={(e) => updateFormData({
             personalInfo: { ...formData.personalInfo, phone: e.target.value }
           })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+          className="w-full px-4 py-3 bg-primary-foreground border border-primary-foreground rounded-lg text-primary-forebg-primary-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-forebg-primary-foreground focus:border-transparent"
           placeholder="Enter your phone number"
         />
       </div>
@@ -128,22 +128,22 @@ export default function CaregiverDetailsForm({
       {/* Patients Section */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <label className="block text-sm font-medium text-gray-300">
+          <label className="block text-sm font-medium text-primary-foreground">
             Patients You Care For
           </label>
           <button
             type="button"
             onClick={addPatient}
-            className="text-sm bg-white text-gray-900 px-3 py-1 rounded hover:bg-gray-100 transition-colors"
+            className="text-sm bg-primary-foreground  px-3 py-1 rounded hover:bg-secondary/60 transition-colors"
           >
             + Add Patient
           </button>
         </div>
 
         {patients.map((patient, index) => (
-          <div key={index} className="bg-gray-700 p-4 rounded-lg mb-3 space-y-3">
+          <div key={index} className="bg-primary-foreground p-4 rounded-lg mb-3 space-y-3">
             <div className="flex justify-between items-start">
-              <h4 className="text-white font-medium">Patient {index + 1}</h4>
+              <h4 className="text-primary-forebg-primary-foreground font-medium">Patient {index + 1}</h4>
               <button
                 type="button"
                 onClick={() => removePatient(index)}
@@ -160,7 +160,7 @@ export default function CaregiverDetailsForm({
                   type="text"
                   value={patient.name}
                   onChange={(e) => updatePatient(index, 'name', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white text-sm"
+                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
                   placeholder="Patient name"
                 />
               </div>
@@ -171,7 +171,7 @@ export default function CaregiverDetailsForm({
                   type="text"
                   value={patient.relationship}
                   onChange={(e) => updatePatient(index, 'relationship', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white text-sm"
+                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
                   placeholder="e.g., Son, Daughter"
                 />
               </div>
@@ -182,7 +182,7 @@ export default function CaregiverDetailsForm({
                   type="text"
                   value={patient.patientCode || ''}
                   onChange={(e) => updatePatient(index, 'patientCode', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white text-sm"
+                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
                   placeholder="If they have an account"
                 />
               </div>
@@ -192,7 +192,7 @@ export default function CaregiverDetailsForm({
                 <select
                   value={patient.accessLevel}
                   onChange={(e) => updatePatient(index, 'accessLevel', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white text-sm"
+                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
                 >
                   <option value="full">Full Access</option>
                   <option value="limited">Limited Access</option>
@@ -203,7 +203,7 @@ export default function CaregiverDetailsForm({
         ))}
 
         {patients.length === 0 && (
-          <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-600 rounded-lg">
+          <div className="text-center py-8 text-gray-400 border-2 border-dashed border-primary-foreground rounded-lg">
             <p>No patients added yet</p>
             <p className="text-sm mt-1">Click &quot;Add Patient&quot; to get started</p>
           </div>
@@ -215,13 +215,13 @@ export default function CaregiverDetailsForm({
         <button
           type="button"
           onClick={prevStep}
-          className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+          className="px-6 py-3 border border-primary-foreground rounded-lg text-primary-foreground hover:bg-primary-foreground transition-colors"
         >
           Back
         </button>
         <button
           type="submit"
-          className="px-6 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+          className="px-6 py-3 bg-primary-foreground  rounded-lg font-medium hover:bg-secondary/60 transition-colors"
         >
           Continue
         </button>

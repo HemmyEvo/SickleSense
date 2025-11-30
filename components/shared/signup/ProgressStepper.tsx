@@ -35,8 +35,8 @@ export default function ProgressStepper({ currentStep, userType }: ProgressStepp
               {/* Step circle */}
               <div className={`
                 flex items-center justify-center w-8 h-8 rounded-full border-2 
-                ${isCompleted ? 'bg-white border-white text-gray-900' : 
-                  isCurrent ? 'bg-white border-white text-gray-900' : 
+                ${isCompleted ? 'bg-primary border-primary text-secondary' : 
+                  isCurrent ? 'bg-primary border-primary text-secondary' : 
                   'border-gray-600 text-gray-400'}
               `}>
                 {isCompleted ? (
@@ -52,7 +52,7 @@ export default function ProgressStepper({ currentStep, userType }: ProgressStepp
               {index < steps.length - 1 && (
                 <div className={`
                   flex-1 h-0.5 mx-2
-                  ${isCompleted ? 'bg-white' : 'bg-gray-600'}
+                  ${isCompleted ? 'bg-black dark:bg-white' : 'bg-gray-600'}
                 `} />
               )}
             </div>
@@ -60,7 +60,7 @@ export default function ProgressStepper({ currentStep, userType }: ProgressStepp
             {/* Step label */}
             <span className={`
               text-xs mt-2 text-center
-              ${isCurrent || isCompleted ? 'text-white' : 'text-gray-400'}
+              ${isCurrent || isCompleted ? 'text-black dark:text-white' : 'text-gray-400'}
             `}>
               {step}
             </span>
