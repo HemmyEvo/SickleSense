@@ -72,7 +72,7 @@ export default function HomePage() {
                 Get Started Free
               </Link>
               <Link 
-                href="/how-it-works" 
+                href="/how-it-work" 
                 className="border-2 border-primary text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 How It Works
@@ -400,7 +400,7 @@ export default function HomePage() {
               Start Your Free Account
             </Link>
             <Link 
-              href="/how-it-works" 
+              href="/how-it-work" 
               className="border-2 border-primary text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               Learn More

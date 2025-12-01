@@ -5,16 +5,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react'; // Import signOut
 import { ModeToggle } from '../ui/theme-button';
-
-
-
-
 
 export default function Header({ user }: any) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  // Removed isUserMenuOpen state as it is no longer needed
   const pathname = usePathname();
+
+  const handleSignOut = async () => {
+    // Implement sign out logic
+    await signOut({ callbackUrl: '/' }); // Redirect to home after sign out
+    setIsMenuOpen(false);
+  };
 
   return (
     <header className="bg-white dark:bg-black shadow-sm sticky top-0 z-50">
@@ -24,8 +27,7 @@ export default function Header({ user }: any) {
           {/* Logo */}
           <div className="shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              
-              <span className="text-xl font-extrabold ">
+              <span className="text-xl font-extrabold">
                 SickleSense
               </span>
             </Link>
@@ -39,7 +41,7 @@ export default function Header({ user }: any) {
                 <Link 
                   href="/dashboard" 
                   className={`text-sm font-medium transition-colors ${
-                    pathname.startsWith('/dashboard') 
+                    pathname?.startsWith('/dashboard') 
                       ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
@@ -49,7 +51,7 @@ export default function Header({ user }: any) {
                 <Link 
                   href="/health-trends" 
                   className={`text-sm font-medium transition-colors ${
-                    pathname.startsWith('/health-trends') 
+                    pathname?.startsWith('/health-trends') 
                       ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
@@ -71,9 +73,9 @@ export default function Header({ user }: any) {
               // Public navigation
               <>
                 <Link 
-                  href="/how-it-works" 
+                  href="/how-it-work" 
                   className={`text-sm font-medium transition-colors ${
-                    pathname === '/how-it-works' 
+                    pathname === '/how-it-work' 
                       ? 'text-[#8200CD] font-semibold' 
                       : 'text-primary hover:text-primary/80'
                   }`}
@@ -97,6 +99,7 @@ export default function Header({ user }: any) {
           {/* Right side buttons */}
           <div className="flex items-center space-x-4">
             <ModeToggle />
+            
             {/* Emergency Button - Always Visible */}
             <Link 
               href="/emergency/help" 
@@ -108,8 +111,21 @@ export default function Header({ user }: any) {
               <span>Emergency</span>
             </Link>
 
-            {!user && (
-              // Auth buttons for non-authenticated users
+            {user ? (
+              // User menu for authenticated users (desktop) - REPLACED Dropdown with single Sign Out button
+              <div className="hidden md:flex items-center space-x-4">
+                <button 
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                >
+                  <span>Sign Out</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              // Auth buttons for non-authenticated users (desktop)
               <div className="hidden md:flex items-center space-x-4">
                 <Link 
                   href="/login" 
@@ -127,16 +143,16 @@ export default function Header({ user }: any) {
             )}
 
             {/* Mobile menu button */}
-                <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 rounded-md cursor-pointer dark:text-gray-300 hover:text-white hover:bg-gray-800 border border-transparent hover:border-gray-600"
-                >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-md cursor-pointer dark:text-gray-300 hover:text-white hover:bg-gray-800 border border-transparent hover:border-gray-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                </button>
-                </div>
-                </div>
+              </svg>
+            </button>
+          </div>
+        </div>
 
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
@@ -147,38 +163,29 @@ export default function Header({ user }: any) {
                 <>
                   <Link 
                     href="/dashboard" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
+                    className="text-base font-medium text-primary hover:text-primary/80 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <Link 
                     href="/health-trends" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
+                    className="text-base font-medium text-primary hover:text-primary/80 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Health Trends
                   </Link>
                   <Link 
                     href="/tips" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
+                    className="text-base font-medium text-primary hover:text-primary/80 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Health Tips
                   </Link>
-                  <Link 
-                    href="/profile" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    My Profile
-                  </Link>
-                  <div className="pt-2">
+                  {/* Removed My Profile link to align with simple Sign Out request */}
+                  <div className="pt-2 border-t border-gray-700">
                     <button 
-                      onClick={() => {
-                        // Handle logout
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={handleSignOut}
                       className="w-full text-left text-base font-medium text-primary hover:text-primary/80 py-2"
                     >
                       Sign Out
@@ -189,20 +196,20 @@ export default function Header({ user }: any) {
                 // Public mobile menu
                 <>
                   <Link 
-                    href="/how-it-works" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
+                    href="/how-it-work" 
+                    className="text-base font-medium text-primary hover:text-primary/80 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     How It Works
                   </Link>
                   <Link 
                     href="/tips" 
-                    className="text-base font-medium text-primary hover:text-primary/80 py-2 border-b border-gray-700"
+                    className="text-base font-medium text-primary hover:text-primary/80 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Health Tips
                   </Link>
-                  <div className="pt-4 border-t border-gray-700 space-y-3">
+                  <div className="pt-4 space-y-3">
                     <Link 
                       href="/login" 
                       className="block text-base font-medium text-primary hover:text-primary/80 py-2"

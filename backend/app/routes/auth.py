@@ -78,7 +78,6 @@ def signup():
 def login():
     try:
         data = request.get_json()
-        
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email and password are required'}), 400
         

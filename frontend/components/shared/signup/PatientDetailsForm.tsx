@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/signup/PatientDetailsForm.tsx
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { CalendarIcon, User, Phone, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PatientDetailsFormProps {
   formData: any;
@@ -19,160 +30,248 @@ export default function PatientDetailsForm({
     nextStep();
   };
 
+  // Convert date string to Date object for calendar
+  const dateOfBirth = formData.personalInfo?.dateOfBirth 
+    ? new Date(formData.personalInfo.dateOfBirth)
+    : undefined;
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      updateFormData({
+        personalInfo: { ...formData.personalInfo, dateOfBirth: formattedDate }
+      });
+    } else {
+      updateFormData({
+        personalInfo: { ...formData.personalInfo, dateOfBirth: '' }
+      });
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Personal Information</h2>
-        <p className="text-gray-400 mt-2">Tell us about yourself</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-4xl">
+        <Card className="border-2 shadow-xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <User className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-3xl">Personal Information</CardTitle>
+            <CardDescription className="text-lg">
+              Tell us about yourself to get started
+            </CardDescription>
+          </CardHeader>
 
-      {/* Full Name */}
-      <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
-          Full Name
-        </label>
-        <input
-          type="text"
-          id="fullName"
-          required
-          value={formData.personalInfo?.fullName || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, fullName: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-          placeholder="Enter your full name"
-        />
-      </div>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Grid layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Full Name */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fullName" className="text-base">
+                      Full Name
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="fullName"
+                      required
+                      value={formData.personalInfo?.fullName || ''}
+                      onChange={(e) => updateFormData({
+                        personalInfo: { ...formData.personalInfo, fullName: e.target.value }
+                      })}
+                      placeholder="John Doe"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                </div>
 
-      {/* Date of Birth */}
-      <div>
-        <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-300 mb-2">
-          Date of Birth
-        </label>
-        <input
-          type="date"
-          id="dateOfBirth"
-          required
-          value={formData.personalInfo?.dateOfBirth || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, dateOfBirth: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-        />
-      </div>
+                {/* Date of Birth */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="dateOfBirth" className="text-base">
+                      Date of Birth
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-12",
+                          !dateOfBirth && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateOfBirth ? format(dateOfBirth, "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dateOfBirth}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                        captionLayout="dropdown"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
+                        className="p-3 pointer-events-auto"
+                        
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-      {/* Gender */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-3">
-          Gender
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          {['Male', 'Female', 'Prefer not to say'].map((gender) => (
-            <label
-              key={gender}
-              className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                formData.personalInfo?.gender === gender
-                  ? 'border-white bg-gray-700'
-                  : 'border-gray-600 hover:border-gray-400'
-              }`}
-            >
-              <input
-                type="radio"
-                name="gender"
-                value={gender}
-                checked={formData.personalInfo?.gender === gender}
-                onChange={(e) => updateFormData({
-                  personalInfo: { ...formData.personalInfo, gender: e.target.value }
-                })}
-                className="text-white focus:ring-white focus:ring-offset-gray-800"
-              />
-              <span className="ml-2 text-white">{gender}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+                {/* Gender - Full width */}
+                <div className="space-y-3 md:col-span-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-base">
+                      Gender
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <RadioGroup
+                    value={formData.personalInfo?.gender || ''}
+                    onValueChange={(value) => updateFormData({
+                      personalInfo: { ...formData.personalInfo, gender: value }
+                    })}
+                    className="grid grid-cols-3 gap-3"
+                  >
+                    {['Male', 'Female', 'Prefer not to say'].map((gender) => (
+                      <div key={gender}>
+                        <RadioGroupItem
+                          value={gender}
+                          id={`gender-${gender}`}
+                          className="peer sr-only"
+                        />
+                        <Label
+                          htmlFor={`gender-${gender}`}
+                          className="flex items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10"
+                        >
+                          <span className="font-medium">{gender}</span>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
 
-      {/* Phone Number */}
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-2">
-          Phone Number
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          required
-          value={formData.personalInfo?.phone || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, phone: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-          placeholder="Enter your phone number"
-        />
-      </div>
+                {/* Phone Number */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="phone" className="text-base">
+                      Phone Number
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      required
+                      value={formData.personalInfo?.phone || ''}
+                      onChange={(e) => updateFormData({
+                        personalInfo: { ...formData.personalInfo, phone: e.target.value }
+                      })}
+                      placeholder="+1 (555) 123-4567"
+                      className="h-12 text-base pl-10"
+                    />
+                  </div>
+                </div>
 
-      {/* Country/Region */}
-      <div>
-        <label htmlFor="country" className="block text-sm font-medium text-gray-300 mb-2">
-          Country/Region
-        </label>
-        <select
-          id="country"
-          required
-          value={formData.personalInfo?.country || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, country: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-        >
-          <option value="">Select your country</option>
-          <option value="US">United States</option>
-          <option value="NG">Nigeria</option>
-          <option value="GB">United Kingdom</option>
-          <option value="IN">India</option>
-          <option value="ZA">South Africa</option>
-          {/* Add more countries as needed */}
-        </select>
-      </div>
+                {/* Country/Region */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="country" className="text-base">
+                      Country/Region
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <Select
+                    value={formData.personalInfo?.country || ''}
+                    onValueChange={(value) => updateFormData({
+                      personalInfo: { ...formData.personalInfo, country: value }
+                    })}
+                  >
+                    <SelectTrigger className="h-12 text-base">
+                      <Globe className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="US">United States</SelectItem>
+                      <SelectItem value="NG">Nigeria</SelectItem>
+                      <SelectItem value="GB">United Kingdom</SelectItem>
+                      <SelectItem value="IN">India</SelectItem>
+                      <SelectItem value="ZA">South Africa</SelectItem>
+                      <SelectItem value="CA">Canada</SelectItem>
+                      <SelectItem value="GH">Ghana</SelectItem>
+                      <SelectItem value="KE">Kenya</SelectItem>
+                      <SelectItem value="BR">Brazil</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-      {/* Language Preference */}
-      <div>
-        <label htmlFor="language" className="block text-sm font-medium text-gray-300 mb-2">
-          Language Preference
-        </label>
-        <select
-          id="language"
-          required
-          value={formData.personalInfo?.language || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, language: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-        >
-          <option value="">Select your language</option>
-          <option value="en">English</option>
-          <option value="fr">French</option>
-          <option value="es">Spanish</option>
-          <option value="pt">Portuguese</option>
-          <option value="ar">Arabic</option>
-        </select>
-      </div>
+                {/* Language Preference - Full width */}
+                <div className="space-y-3 md:col-span-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="language" className="text-base">
+                      Language Preference
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <Select
+                    value={formData.personalInfo?.language || ''}
+                    onValueChange={(value) => updateFormData({
+                      personalInfo: { ...formData.personalInfo, language: value }
+                    })}
+                  >
+                    <SelectTrigger className="h-12 text-base">
+                      <SelectValue placeholder="Select your language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="fr">French</SelectItem>
+                      <SelectItem value="es">Spanish</SelectItem>
+                      <SelectItem value="pt">Portuguese</SelectItem>
+                      <SelectItem value="ar">Arabic</SelectItem>
+                      <SelectItem value="sw">Swahili</SelectItem>
+                      <SelectItem value="yo">Yoruba</SelectItem>
+                      <SelectItem value="ha">Hausa</SelectItem>
+                      <SelectItem value="ig">Igbo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={prevStep}
-          className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-        >
-          Continue
-        </button>
+              {/* Navigation Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-8 border-t">
+                <Button
+                  type="button"
+                  onClick={prevStep}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back
+                </Button>
+                
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="gap-2"
+                >
+                  Continue
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-    </form>
+    </div>
   );
 }

@@ -1,18 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 
-// Components - Assumes these exist in your project structure
+// Components
 import SignupForm from '@/components/shared/signup/SignupForm';
 import PatientDetailsForm from '@/components/shared/signup/PatientDetailsForm';
-import ProgressStepper from '@/components/shared/signup/ProgressStepper';
 import EmergencyContactsForm from '@/components/shared/signup/EmergencyContactsForm';
 import MedicalHistoryForm from '@/components/shared/signup/MedicalHistoryForm';
 import CaregiverDetailsForm from '@/components/shared/signup/CaregiverDetailsForm';
+
+// Shadcn Components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, ChevronLeft, CheckCircle2, User, Shield, BriefcaseMedical, PhoneCall, Users } from 'lucide-react';
 
 export type UserType = 'patient' | 'caregiver' | 'healthcare';
 
@@ -86,6 +93,9 @@ export default function SignupPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Ref for the main container to scroll to
+  const mainContainerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<SignupData>({
     email: '',
@@ -96,9 +106,22 @@ export default function SignupPage() {
 
   const totalSteps = formData.userType === 'patient' ? 5 : 3;
 
+  // Scroll to top when step changes
+  useEffect(() => {
+    if (mainContainerRef.current) {
+      // Scroll to top of the main container
+      mainContainerRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+      
+      // Also scroll window to top as a fallback
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep]);
+
   const updateFormData = (newData: Partial<SignupData>) => {
     setFormData(prev => ({ ...prev, ...newData }));
-    // Clear errors when user modifies data
     if (error) setError(null);
   };
 
@@ -115,8 +138,7 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // 1. Register the user in Flask Backend via Proxy
-      // Ensure you have an API route at app/api/auth/signup/route.ts or equivalent
+      // 1. Register the user in Flask Backend via your Proxy Route
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +154,6 @@ export default function SignupPage() {
       console.log('✅ Account created successfully, attempting auto-login...');
 
       // 2. Automatically log the user in using NextAuth
-      // redirect: false prevents NextAuth from trying to change the page automatically
       const signInResult = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -144,17 +165,16 @@ export default function SignupPage() {
       }
 
       // 3. Refresh and Redirect
-      // router.refresh() is CRITICAL here. It ensures the root layout re-fetches the session
-      // before we push to the dashboard.
       router.refresh(); 
       router.push('/');
       
-    } catch (err: any) {
+    } catch (err) {
       console.error('Signup Error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       
-      // Optional: If the account was created but login failed, you might want to redirect to login
-      if (err.message.includes('auto-login failed')) {
+      setError(errorMessage);
+      
+      if (errorMessage.includes('auto-login failed')) {
           setTimeout(() => router.push('/login'), 2000);
       }
     } finally {
@@ -162,32 +182,319 @@ export default function SignupPage() {
     }
   };
 
+  // Progress percentage
+  const progressPercentage = (currentStep / totalSteps) * 100;
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Not provided';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Format month/year for diagnosis date
+  const formatMonthYear = (dateString: string) => {
+    if (!dateString) return 'Not provided';
+    const [year, month] = dateString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long'
+    });
+  };
+
+  // Review section components
+  const renderReviewSection = () => {
+    const userTypeLabel = formData.userType === 'patient' ? 'Patient' : 'Caregiver';
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <CheckCircle2 className="h-6 w-6 text-green-500" />
+              Review Your Information
+            </CardTitle>
+            <CardDescription>
+              Please review your details before submitting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Account Info */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Account Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="font-medium">{formData.email}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Role</p>
+                  <Badge variant="secondary" className="font-normal">
+                    {userTypeLabel}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Personal Info */}
+            {formData.personalInfo && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Personal Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="font-medium">{formData.personalInfo.fullName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="font-medium">{formatDate(formData.personalInfo.dateOfBirth)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Gender</p>
+                    <p className="font-medium">{formData.personalInfo.gender}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium">{formData.personalInfo.phone}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Country</p>
+                    <p className="font-medium">{formData.personalInfo.country}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Language</p>
+                    <p className="font-medium">{formData.personalInfo.language}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Medical History - Patients only */}
+            {formData.userType === 'patient' && formData.medicalHistory && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <BriefcaseMedical className="h-5 w-5 text-primary" />
+                    Medical History
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Sickle Cell Type</p>
+                      <p className="font-medium">{formData.medicalHistory.sickleCellType}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Diagnosis Date</p>
+                      <p className="font-medium">{formatMonthYear(formData.medicalHistory.diagnosisDate)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Crisis Frequency</p>
+                      <p className="font-medium">{formData.medicalHistory.crisisFrequency}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Hydroxyurea Usage</p>
+                      <p className="font-medium">
+                        {formData.medicalHistory.usesHydroxyurea ? 'Yes' : 'No'}
+                      </p>
+                    </div>
+                    {formData.medicalHistory.commonCrisisLocations?.length > 0 && (
+                      <div className="md:col-span-2 space-y-1">
+                        <p className="text-sm text-muted-foreground">Common Crisis Locations</p>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.medicalHistory.commonCrisisLocations.map((location, index) => (
+                            <Badge key={index} variant="outline">
+                              {location}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {formData.medicalHistory.regularMedications?.length > 0 && (
+                      <div className="md:col-span-2 space-y-1">
+                        <p className="text-sm text-muted-foreground">Regular Medications</p>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.medicalHistory.regularMedications.map((medication, index) => (
+                            <Badge key={index} variant="outline" className="bg-blue-50 dark:bg-blue-950/20">
+                              {medication}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Emergency Contacts - Patients only */}
+            {formData.userType === 'patient' && formData.emergencyContacts && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <PhoneCall className="h-5 w-5 text-primary" />
+                    Emergency Contacts
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Primary Contact</p>
+                      <p className="font-medium">{formData.emergencyContacts.primary.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formData.emergencyContacts.primary.relationship} • {formData.emergencyContacts.primary.phone}
+                      </p>
+                    </div>
+                    {formData.emergencyContacts.secondary.name && (
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Secondary Contact</p>
+                        <p className="font-medium">{formData.emergencyContacts.secondary.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formData.emergencyContacts.secondary.relationship} • {formData.emergencyContacts.secondary.phone}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Caregiver Info */}
+            {formData.userType === 'caregiver' && formData.caregiverInfo && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Caregiver Information
+                  </h3>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Relationship to Patient</p>
+                    <p className="font-medium">{formData.caregiverInfo.relationship}</p>
+                  </div>
+                  {formData.caregiverInfo.patients?.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">Patients You Care For</p>
+                      <div className="space-y-3">
+                        {formData.caregiverInfo.patients.map((patient, index) => (
+                          <Card key={index} className="border">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                  <p className="font-medium">{patient.name}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Relationship: {patient.relationship}
+                                  </p>
+                                  {patient.patientCode && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Patient Code: {patient.patientCode}
+                                    </p>
+                                  )}
+                                </div>
+                                <Badge variant={
+                                  patient.accessLevel === 'full' ? 'default' : 'outline'
+                                }>
+                                  {patient.accessLevel} Access
+                                </Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between pt-6">
+          <Button
+            onClick={prevStep}
+            disabled={isLoading}
+            variant="outline"
+            className="gap-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="gap-2"
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              'Create Account'
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+    <div ref={mainContainerRef} className="min-h-screen py-8 bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Create Your Account</h1>
-          <p className="text-gray-400 mt-2">Join Sickle Sense to track your health and prevent crises</p>
+          <h1 className="text-4xl font-bold">Create Your Account</h1>
+          <p className="text-muted-foreground mt-2">
+            Join Sickle Sense to track your health and prevent crises
+          </p>
         </div>
 
-        {/* Progress Stepper */}
-        <ProgressStepper 
-          currentStep={currentStep} 
-          totalSteps={totalSteps} 
-          userType={formData.userType}
-        />
+        {/* Progress Stepper with Card */}
+        <Card className="mb-8">
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm font-medium">
+                  Step {currentStep} of {totalSteps}
+                </p>
+                <Badge variant="outline">
+                  {formData.userType === 'patient' ? 'Patient' : 'Caregiver'} Registration
+                </Badge>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>Account</span>
+                <span>Personal Info</span>
+                {formData.userType === 'patient' && <span>Medical History</span>}
+                {formData.userType === 'patient' && <span>Emergency Contacts</span>}
+                <span>Review</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Error Message Display */}
+        {/* Error Message */}
         {error && (
-          <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm text-center">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {/* Form Steps */}
-        <div className="bg-secondary-foreground rounded-lg p-6 mt-6">
+        <div className="">
           {currentStep === 1 && (
             <SignupForm 
               formData={formData}
@@ -234,52 +541,15 @@ export default function SignupPage() {
             />
           )}
           
-          {currentStep === totalSteps && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Review Your Information</h2>
-                <p className="text-gray-400 mt-2">Please review your details before submitting</p>
-              </div>
-              
-              <div className="bg-gray-700 rounded-lg p-4 max-h-96 overflow-y-auto">
-                <pre className="text-sm whitespace-pre-wrap text-gray-300">
-                  {JSON.stringify(formData, null, 2)}
-                </pre>
-              </div>
-              
-              <div className="flex justify-between pt-6">
-                <button
-                  onClick={prevStep}
-                  disabled={isLoading}
-                  className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors disabled:opacity-50"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className="px-6 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-70 flex items-center"
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mr-2"></span>
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Account'
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+          {currentStep === totalSteps && renderReviewSection()}
         </div>
 
         {/* Login Link */}
-        <div className="text-center mt-6">
-          <p className="text-gray-400">
+        <div className="text-center mt-8">
+          <p className="text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="text-secondary-foreground hover:underline">
-              Sign in
+            <Link href="/login" className="text-primary hover:underline font-medium">
+              Sign in here
             </Link>
           </p>
         </div>

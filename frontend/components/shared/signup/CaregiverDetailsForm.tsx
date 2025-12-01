@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/signup/CaregiverDetailsForm.tsx
-
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Users, User, Phone, Trash2, ChevronLeft, ChevronRight, Shield, UserPlus } from 'lucide-react';
 
 interface CaregiverDetailsFormProps {
   formData: any;
@@ -49,183 +57,277 @@ export default function CaregiverDetailsForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl text-primary-foreground font-bold">Caregiver Information</h2>
-        <p className="text-gray-400 mt-2">Tell us about your caregiving role</p>
-      </div>
-
-      {/* Full Name */}
-      <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-primary-foreground mb-2">
-          Your Full Name
-        </label>
-        <input
-          type="text"
-          id="fullName"
-          required
-          value={formData.personalInfo?.fullName || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, fullName: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-primary-foreground border border-primary-foreground rounded-lg text-primary-forebg-primary-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-forebg-primary-foreground focus:border-transparent"
-          placeholder="Enter your full name"
-        />
-      </div>
-
-      {/* Relationship to Patient */}
-      <div>
-        <label className="block text-sm font-medium text-primary-foreground mb-3">
-          Your Relationship to Patient
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            'Parent', 'Sibling', 'Spouse/Partner', 'Child', 
-            'Other Family', 'Professional Caregiver', 'Other'
-          ].map((relationship) => (
-            <label
-              key={relationship}
-              className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                formData.caregiverInfo?.relationship === relationship
-                ? 'border-secondary dark:bg-black bg-white'
-                  : 'border-primary text-primary-foreground hover:border-secondary/70'
-              }`}
-            >
-              <input
-                type="radio"
-                name="relationship"
-                value={relationship}
-                checked={formData.caregiverInfo?.relationship === relationship}
-                onChange={(e) => updateFormData({
-                  caregiverInfo: { ...formData.caregiverInfo, relationship: e.target.value }
-                })}
-                className="text-primary-forebg-primary-foreground focus:ring-primary-forebg-primary-foreground focus:ring-offset-gray-800"
-              />
-              <span className="ml-2 text-primary-forebg-primary-foreground text-sm">{relationship}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Phone Number */}
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-primary-foreground mb-2">
-          Phone Number
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          required
-          value={formData.personalInfo?.phone || ''}
-          onChange={(e) => updateFormData({
-            personalInfo: { ...formData.personalInfo, phone: e.target.value }
-          })}
-          className="w-full px-4 py-3 bg-primary-foreground border border-primary-foreground rounded-lg text-primary-forebg-primary-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-forebg-primary-foreground focus:border-transparent"
-          placeholder="Enter your phone number"
-        />
-      </div>
-
-      {/* Patients Section */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <label className="block text-sm font-medium text-primary-foreground">
-            Patients You Care For
-          </label>
-          <button
-            type="button"
-            onClick={addPatient}
-            className="text-sm bg-primary-foreground  px-3 py-1 rounded hover:bg-secondary/60 transition-colors"
-          >
-            + Add Patient
-          </button>
-        </div>
-
-        {patients.map((patient, index) => (
-          <div key={index} className="bg-primary-foreground p-4 rounded-lg mb-3 space-y-3">
-            <div className="flex justify-between items-start">
-              <h4 className="text-primary-forebg-primary-foreground font-medium">Patient {index + 1}</h4>
-              <button
-                type="button"
-                onClick={() => removePatient(index)}
-                className="text-red-400 hover:text-red-300 text-sm"
-              >
-                Remove
-              </button>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <div className="w-full max-w-4xl">
+        <Card className="border-2 shadow-xl">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-primary" />
             </div>
+            <CardTitle className="text-3xl">Caregiver Information</CardTitle>
+            <CardDescription className="text-lg">
+              Tell us about your caregiving role
+            </CardDescription>
+          </CardHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Patient Name</label>
-                <input
-                  type="text"
-                  value={patient.name}
-                  onChange={(e) => updatePatient(index, 'name', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
-                  placeholder="Patient name"
-                />
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Full Name */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fullName" className="text-base">
+                      Your Full Name
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="fullName"
+                      required
+                      value={formData.personalInfo?.fullName || ''}
+                      onChange={(e) => updateFormData({
+                        personalInfo: { ...formData.personalInfo, fullName: e.target.value }
+                      })}
+                      placeholder="Enter your full name"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone Number */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="phone" className="text-base">
+                      Phone Number
+                    </Label>
+                    <span className="text-destructive">*</span>
+                  </div>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      required
+                      value={formData.personalInfo?.phone || ''}
+                      onChange={(e) => updateFormData({
+                        personalInfo: { ...formData.personalInfo, phone: e.target.value }
+                      })}
+                      placeholder="Enter your phone number"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Relationship</label>
-                <input
-                  type="text"
-                  value={patient.relationship}
-                  onChange={(e) => updatePatient(index, 'relationship', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
-                  placeholder="e.g., Son, Daughter"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Patient Code (Optional)</label>
-                <input
-                  type="text"
-                  value={patient.patientCode || ''}
-                  onChange={(e) => updatePatient(index, 'patientCode', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
-                  placeholder="If they have an account"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Access Level</label>
-                <select
-                  value={patient.accessLevel}
-                  onChange={(e) => updatePatient(index, 'accessLevel', e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-primary-forebg-primary-foreground text-sm"
+              {/* Relationship to Patient */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Label className="text-base">
+                    Your Relationship to Patient
+                  </Label>
+                  <span className="text-destructive">*</span>
+                </div>
+                <RadioGroup
+                  value={formData.caregiverInfo?.relationship || ''}
+                  onValueChange={(value) => updateFormData({
+                    caregiverInfo: { ...formData.caregiverInfo, relationship: value }
+                  })}
+                  className="grid grid-cols-2 md:grid-cols-4 gap-3"
                 >
-                  <option value="full">Full Access</option>
-                  <option value="limited">Limited Access</option>
-                </select>
+                  {[
+                    { value: 'Parent', icon: '👪' },
+                    { value: 'Sibling', icon: '👨‍👧‍👦' },
+                    { value: 'Spouse/Partner', icon: '💑' },
+                    { value: 'Child', icon: '👶' },
+                    { value: 'Other Family', icon: '👨‍👩‍👧‍👦' },
+                    { value: 'Professional Caregiver', icon: '👩‍⚕️' },
+                    { value: 'Friend', icon: '👫' },
+                    { value: 'Other', icon: '❓' }
+                  ].map((relationship) => (
+                    <div key={relationship.value}>
+                      <RadioGroupItem
+                        value={relationship.value}
+                        id={`relationship-${relationship.value}`}
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor={`relationship-${relationship.value}`}
+                        className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10"
+                      >
+                        <span className="text-2xl mb-1">{relationship.icon}</span>
+                        <span className="text-xs font-medium text-center">{relationship.value}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
               </div>
-            </div>
-          </div>
-        ))}
 
-        {patients.length === 0 && (
-          <div className="text-center py-8 text-gray-400 border-2 border-dashed border-primary-foreground rounded-lg">
-            <p>No patients added yet</p>
-            <p className="text-sm mt-1">Click &quot;Add Patient&quot; to get started</p>
-          </div>
-        )}
-      </div>
+              <Separator />
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={prevStep}
-          className="px-6 py-3 border border-primary-foreground rounded-lg text-primary-foreground hover:bg-primary-foreground transition-colors"
-        >
-          Back
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-3 bg-primary-foreground  rounded-lg font-medium hover:bg-secondary/60 transition-colors"
-        >
-          Continue
-        </button>
+              {/* Patients Section */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <div>
+                    <h3 className="text-xl font-bold">Patients You Care For</h3>
+                    <p className="text-sm text-muted-foreground mt-1">Add details about each patient</p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={addPatient} 
+                    size="lg"
+                    className="gap-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Add Patient
+                  </Button>
+                </div>
+
+                {patients.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="py-12 text-center">
+                      <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                        <Users className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <h4 className="text-lg font-medium">No patients added yet</h4>
+                      <p className="text-muted-foreground mt-1">Click &quot;Add Patient&quot; to get started</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {patients.map((patient, index) => (
+                      <Card key={index} className="border-purple-200 bg-purple-50 dark:bg-purple-950/20 dark:border-purple-800/30">
+                        <CardHeader className="pb-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <CardTitle className="text-md">Patient {index + 1}</CardTitle>
+                                <CardDescription>Care recipient details</CardDescription>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={() => removePatient(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Patient Name */}
+                            <div className="space-y-2">
+                              <Label htmlFor={`patient-name-${index}`} className="text-sm">
+                                Patient Name
+                              </Label>
+                              <Input
+                                id={`patient-name-${index}`}
+                                value={patient.name}
+                                onChange={(e) => updatePatient(index, 'name', e.target.value)}
+                                placeholder="Patient name"
+                              />
+                            </div>
+
+                            {/* Relationship */}
+                            <div className="space-y-2">
+                              <Label htmlFor={`patient-relationship-${index}`} className="text-sm">
+                                Relationship
+                              </Label>
+                              <Input
+                                id={`patient-relationship-${index}`}
+                                value={patient.relationship}
+                                onChange={(e) => updatePatient(index, 'relationship', e.target.value)}
+                                placeholder="e.g., Son, Daughter"
+                              />
+                            </div>
+
+                            {/* Patient Code */}
+                            <div className="space-y-2">
+                              <Label htmlFor={`patient-code-${index}`} className="text-sm">
+                                Patient Code (Optional)
+                              </Label>
+                              <Input
+                                id={`patient-code-${index}`}
+                                value={patient.patientCode || ''}
+                                onChange={(e) => updatePatient(index, 'patientCode', e.target.value)}
+                                placeholder="If they have an account"
+                              />
+                            </div>
+
+                            {/* Access Level */}
+                            <div className="space-y-2">
+                              <Label htmlFor={`access-level-${index}`} className="text-sm">
+                                Access Level
+                              </Label>
+                              <Select
+                                value={patient.accessLevel}
+                                onValueChange={(value) => updatePatient(index, 'accessLevel', value)}
+                              >
+                                <SelectTrigger id={`access-level-${index}`}>
+                                  <Shield className="h-4 w-4 mr-2" />
+                                  <SelectValue placeholder="Select access level" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="full">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4" />
+                                      Full Access
+                                      <Badge variant="outline" className="ml-2">All features</Badge>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="limited">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4" />
+                                      Limited Access
+                                      <Badge variant="outline" className="ml-2">Basic features</Badge>
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-8 border-t">
+                <Button
+                  type="button"
+                  onClick={prevStep}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Back
+                </Button>
+                
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="gap-2"
+                >
+                  Continue
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-    </form>
+    </div>
   );
 }

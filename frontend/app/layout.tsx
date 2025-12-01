@@ -1,14 +1,14 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "../components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import CheckInManager from "@/components/shared/CheckInManager";
-import { getServerSession } from "next-auth";
 import { Providers } from "@/components/shared/Provider";
-import { authOptions } from "@/api/auth/[...nextauth]/route";
- // Import your auth config
+
+// 1. Import the 'auth' helper from your auth.ts file
+// Adjust the path if auth.ts is in 'src/auth.ts' or just 'auth.ts'
+import { auth } from "@/auth"; 
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -26,17 +26,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // 1. Fetch the session on the server
-  const session = await getServerSession(authOptions);
+  // 2. Fetch the session using the new v5 auth() helper
+  const session = await auth();
 
   return (
     <html lang="en" className="dark">
       <body className={`${poppins.variable} antialiased`}>
-        {/* 2. Wrap everything in the Client-Side Providers */}
+        {/* 3. Pass the session to your client-side providers */}
         <Providers session={session}>
           <CheckInManager />
           
-       
           <Header user={session?.user} />
           
           {children}
