@@ -18,7 +18,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Sickle Sense",
-  description: "Sickle Sense is a modern digital platform built to empower sickle cell patients.",
+  description: "Sickle Sense is a modern digital platform built to empower sickle cell patients. ",
 };
 
 export default async function RootLayout({
