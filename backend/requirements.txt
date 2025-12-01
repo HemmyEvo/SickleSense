@@ -10,6 +10,6 @@ python-dateutil
 Flask-Bcrypt
 scikit-learn
 pandas
-numpy==1.24.3
-joblib==1.3.0
+numpy
+joblib
 sklearn
