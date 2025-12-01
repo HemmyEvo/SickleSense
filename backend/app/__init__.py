@@ -6,6 +6,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 db = SQLAlchemy()
@@ -27,14 +28,20 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     cors.init_app(app)
-
-    # Blueprints
+    
+    # Load ML models when app starts
+    with app.app_context():
+        from app.services.ml_service import MLService
+        MLService.load_models()
+    
+    # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.health import health_bp
     from app.routes.prediction import prediction_bp
     from app.routes.notifications import notifications_bp
     from app.routes.admin import admin_bp
 
+    
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(health_bp, url_prefix='/api')
     app.register_blueprint(prediction_bp, url_prefix='/api')

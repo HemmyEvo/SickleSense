@@ -1,47 +1,49 @@
 class RecommendationService:
     @staticmethod
     def generate_recommendations(prediction, health_log):
-        """Generate personalized recommendations based on risk and symptoms"""
+        """Generate personalized recommendations based on ML predictions"""
         recommendations = []
-        risk_level = prediction['risk_level']
         
-        # Base recommendations for all risk levels
+        # Base recommendations
         recommendations.append("Drink plenty of water throughout the day")
         recommendations.append("Avoid extreme temperatures")
         
-        # Risk-specific recommendations
-        if risk_level == 'high':
+        # Pain-type specific recommendations
+        pain_type = prediction.get('pain_type', '')
+        if 'chest' in str(pain_type).lower():
+            recommendations.append("🚨 CHEST PAIN DETECTED - Seek immediate medical attention")
+            recommendations.append("Sit upright and try to stay calm")
+        
+        # Pain intensity based recommendations
+        pain_intensity = prediction.get('pain_intensity', 0)
+        if pain_intensity >= 7:
             recommendations.extend([
-                "Seek medical attention immediately",
-                "Take prescribed pain medication",
+                "Take prescribed pain medication immediately",
                 "Rest in a comfortable position",
-                "Monitor symptoms closely",
-                "Notify your caregiver or family member"
+                "Apply warm compresses to painful areas",
+                "Contact your healthcare provider"
             ])
-        elif risk_level == 'medium':
+        elif pain_intensity >= 4:
             recommendations.extend([
                 "Increase fluid intake",
                 "Avoid strenuous activities",
                 "Rest and monitor symptoms",
-                "Take medications as prescribed",
-                "Keep warm if feeling cold"
+                "Take medications as prescribed"
             ])
         
         # Symptom-specific recommendations
         symptoms = health_log.symptoms or []
         if 'chest_pain' in symptoms or 'shortness_of_breath' in symptoms:
-            recommendations.append("⚠️ Chest symptoms detected - seek urgent medical care")
+            recommendations.append("⚠️ Chest symptoms detected - urgent care needed")
         
-        if 'joint_pains' in symptoms or 'back_pain' in symptoms:
-            recommendations.append("Apply warm compresses to painful areas")
+        if 'joint_pains' in symptoms:
+            recommendations.append("Apply warm compresses to painful joints")
         
-        if health_log.water_intake in ['0-1_cups', '2-3_cups']:
-            recommendations.append("🚰 You're not drinking enough water - aim for 6+ cups daily")
-        
+        # Environmental factors
         if health_log.temperature_feeling == 'cold' or health_log.temperature_exposure == 'yes_cold':
             recommendations.append("❄️ Keep warm - cold exposure can trigger crises")
         
-        if health_log.medication_taken == 'missed':
-            recommendations.append("💊 Take your missed medication as soon as possible")
+        if health_log.water_intake in ['0-1_cups', '2-3_cups']:
+            recommendations.append("🚰 Increase water intake to prevent dehydration")
         
         return recommendations
