@@ -1,9 +1,12 @@
-// app/signup/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
-
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
+
+// Components - Assumes these exist in your project structure
 import SignupForm from '@/components/shared/signup/SignupForm';
 import PatientDetailsForm from '@/components/shared/signup/PatientDetailsForm';
 import ProgressStepper from '@/components/shared/signup/ProgressStepper';
@@ -79,7 +82,11 @@ export interface SignupData {
 }
 
 export default function SignupPage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<SignupData>({
     email: '',
     password: '',
@@ -91,6 +98,8 @@ export default function SignupPage() {
 
   const updateFormData = (newData: Partial<SignupData>) => {
     setFormData(prev => ({ ...prev, ...newData }));
+    // Clear errors when user modifies data
+    if (error) setError(null);
   };
 
   const nextStep = () => {
@@ -102,18 +111,63 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async () => {
-    // Submit form data to backend
-    console.log('Submitting form data:', formData);
-    // Add your API call here
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Register the user in Flask Backend via Proxy
+      // Ensure you have an API route at app/api/auth/signup/route.ts or equivalent
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || 'Failed to create account');
+      }
+
+      console.log('✅ Account created successfully, attempting auto-login...');
+
+      // 2. Automatically log the user in using NextAuth
+      // redirect: false prevents NextAuth from trying to change the page automatically
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false, 
+      });
+
+      if (signInResult?.error) {
+        throw new Error('Account created, but auto-login failed. Please sign in manually.');
+      }
+
+      // 3. Refresh and Redirect
+      // router.refresh() is CRITICAL here. It ensures the root layout re-fetches the session
+      // before we push to the dashboard.
+      router.refresh(); 
+      router.push('/');
+      
+    } catch (err: any) {
+      console.error('Signup Error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
+      
+      // Optional: If the account was created but login failed, you might want to redirect to login
+      if (err.message.includes('auto-login failed')) {
+          setTimeout(() => router.push('/login'), 2000);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen  py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center mb-8">
-   
           <h1 className="text-3xl font-bold">Create Your Account</h1>
           <p className="text-gray-400 mt-2">Join Sickle Sense to track your health and prevent crises</p>
         </div>
@@ -124,6 +178,13 @@ export default function SignupPage() {
           totalSteps={totalSteps} 
           userType={formData.userType}
         />
+
+        {/* Error Message Display */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm text-center">
+            {error}
+          </div>
+        )}
 
         {/* Form Steps */}
         <div className="bg-secondary-foreground rounded-lg p-6 mt-6">
@@ -180,8 +241,8 @@ export default function SignupPage() {
                 <p className="text-gray-400 mt-2">Please review your details before submitting</p>
               </div>
               
-              <div className="bg-gray-700 rounded-lg p-4">
-                <pre className="text-sm whitespace-pre-wrap">
+              <div className="bg-gray-700 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <pre className="text-sm whitespace-pre-wrap text-gray-300">
                   {JSON.stringify(formData, null, 2)}
                 </pre>
               </div>
@@ -189,15 +250,24 @@ export default function SignupPage() {
               <div className="flex justify-between pt-6">
                 <button
                   onClick={prevStep}
-                  className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+                  disabled={isLoading}
+                  className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="px-6 py-3  text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-70 flex items-center"
                 >
-                  Create Account
+                  {isLoading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mr-2"></span>
+                      Creating...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
                 </button>
               </div>
             </div>

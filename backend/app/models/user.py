@@ -9,15 +9,23 @@ class User(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20))
     password_hash = db.Column(db.String(128), nullable=False)
+    
+    # Core Identity Fields (extracted from personal_info for easier querying)
     name = db.Column(db.String(100), nullable=False)
-    age = db.Column(db.Integer)
-    gender = db.Column(db.String(20))
-    genotype = db.Column(db.String(10))
-    role = db.Column(db.String(20), default='patient')  # patient, caregiver
-    is_admin = db.Column(db.Boolean, default=False)  # Add this line
+    phone = db.Column(db.String(20))
+    role = db.Column(db.String(20), default='patient') # patient, caregiver, healthcare
+    is_admin = db.Column(db.Boolean, default=False)
+    
+    # structured data stored as JSON objects
+    personal_info = db.Column(db.JSON, nullable=True)
+    medical_history = db.Column(db.JSON, nullable=True)
+    emergency_contacts = db.Column(db.JSON, nullable=True)
+    healthcare_providers = db.Column(db.JSON, nullable=True)
+    caregiver_info = db.Column(db.JSON, nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     health_logs = db.relationship('HealthLog', backref='user', lazy=True)
@@ -34,13 +42,15 @@ class User(db.Model):
             'id': self.id,
             'email': self.email,
             'name': self.name,
-            'age': self.age,
-            'gender': self.gender,
-            'genotype': self.genotype,
+            'phone': self.phone,
             'role': self.role,
+            'personal_info': self.personal_info,
+            'medical_history': self.medical_history,
+            'caregiver_info': self.caregiver_info,
             'is_admin': self.is_admin,
             'created_at': self.created_at.isoformat()
         }
+
 
 class Guardian(db.Model):
     __tablename__ = 'guardians'

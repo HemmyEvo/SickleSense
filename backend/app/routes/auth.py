@@ -2,16 +2,23 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from app import db
 from app.models.user import User
-from app.utils.validation import validate_email, validate_password
+import re
 
 auth_bp = Blueprint('auth', __name__)
+
+def validate_email(email):
+    pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+    return re.match(pattern, email) is not None
+
+def validate_password(password):
+    return len(password) >= 8
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     try:
         data = request.get_json()
         
-        # Validation
+        # 1. Basic Validation
         if not data.get('email') or not data.get('password'):
             return jsonify({'error': 'Email and password are required'}), 400
         
@@ -19,38 +26,53 @@ def signup():
             return jsonify({'error': 'Invalid email format'}), 400
         
         if not validate_password(data['password']):
-            return jsonify({'error': 'Password must be at least 6 characters'}), 400
+            return jsonify({'error': 'Password must be at least 8 characters'}), 400
         
-        # Check if user exists
+        # 2. Check if user exists
         if User.query.filter_by(email=data['email']).first():
             return jsonify({'error': 'User already exists'}), 409
         
-        # Create user
+        # 3. Extract Nested Data
+        personal_info = data.get('personalInfo', {})
+        medical_history = data.get('medicalHistory', {})
+        emergency_contacts = data.get('emergencyContacts', {})
+        healthcare_providers = data.get('healthcareProviders', {})
+        caregiver_info = data.get('caregiverInfo', {})
+        
+        # 4. Create User Instance
+        # We extract name and phone to top-level columns for easier indexing
         user = User(
             email=data['email'],
-            name=data.get('name', ''),
-            age=data.get('age'),
-            gender=data.get('gender'),
-            genotype=data.get('genotype'),
-            role=data.get('role', 'patient')
+            name=personal_info.get('fullName', 'Unknown'),
+            phone=personal_info.get('phone', ''),
+            role=data.get('userType', 'patient'),
+            
+            # Store the full nested objects in JSON columns
+            personal_info=personal_info,
+            medical_history=medical_history,
+            emergency_contacts=emergency_contacts,
+            healthcare_providers=healthcare_providers,
+            caregiver_info=caregiver_info
         )
+        
         user.set_password(data['password'])
         
         db.session.add(user)
         db.session.commit()
         
-        # FIX: Convert user.id to string for JWT identity
+        # 5. Generate Token for immediate login
         access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
-            'message': 'User created successfully',
+            'message': 'Account created successfully',
             'access_token': access_token,
             'user': user.to_dict()
         }), 201
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        print(f"Signup Error: {str(e)}") # Log error for server debugging
+        return jsonify({'error': 'An internal error occurred during signup'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -63,9 +85,8 @@ def login():
         user = User.query.filter_by(email=data['email']).first()
         
         if not user or not user.check_password(data['password']):
-            return jsonify({'error': 'Invalid credentials'}), 401
+            return jsonify({'error': 'Invalid email or password'}), 401
         
-        # FIX: Convert user.id to string for JWT identity
         access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
@@ -81,16 +102,13 @@ def login():
 @jwt_required()
 def get_current_user():
     try:
-        # FIX: Convert string back to integer for database query
-        user_id = int(get_jwt_identity())
-        user = User.query.get(user_id)
+        user_id = get_jwt_identity()
+        user = User.query.get(int(user_id))
         
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
         return jsonify({'user': user.to_dict()}), 200
         
-    except ValueError:
-        return jsonify({'error': 'Invalid user ID in token'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500

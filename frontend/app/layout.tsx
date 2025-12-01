@@ -1,10 +1,14 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "../components/shared/Header";
 import Footer from "@/components/shared/Footer";
-import { ThemeProvider } from "@/components/theme-provider";
-import CheckInManager from "@/components/shared/CheckInManager"; // Import the new component
+import CheckInManager from "@/components/shared/CheckInManager";
+import { getServerSession } from "next-auth";
+import { Providers } from "@/components/shared/Provider";
+import { authOptions } from "@/api/auth/[...nextauth]/route";
+ // Import your auth config
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -17,33 +21,27 @@ export const metadata: Metadata = {
   description: "Sickle Sense is a modern digital platform built to empower sickle cell patients.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const user = {
-    name: "John Doe",
-    email: "john@example.com",
-    role: "patient" as "patient" | "caregiver" | "healthcare",
-  };
+  // 1. Fetch the session on the server
+  const session = await getServerSession(authOptions);
 
   return (
     <html lang="en" className="dark">
       <body className={`${poppins.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {/* Include the CheckInManager globally */}
+        {/* 2. Wrap everything in the Client-Side Providers */}
+        <Providers session={session}>
           <CheckInManager />
           
-          <Header user={user} />
+       
+          <Header user={session?.user} />
+          
           {children}
           <Footer />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
