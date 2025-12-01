@@ -86,7 +86,7 @@ function EmergencyHelpContent() {
 
   useEffect(() => {
     // If user arrived here from the Check-In Notification "Need Help" button
-    const fromNotification = searchParams.get('fromNotification');
+    const fromNotification = searchParams?.get('fromNotification');
     if (fromNotification === 'true') {
       startEmergencyTimer();
     }
