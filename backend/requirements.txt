@@ -11,3 +11,4 @@ Flask-Bcrypt
 pandas
 numpy
 joblib
+scikit-learn
