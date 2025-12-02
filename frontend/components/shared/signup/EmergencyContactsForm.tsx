@@ -142,9 +142,12 @@ export default function EmergencyContactsForm({
                     </div>
 
                     <div className="space-y-2">
+                      <div className="flex items-center gap-2">
                       <Label htmlFor="primary-email" className="text-sm">
                         Email
                       </Label>
+                      <span className="text-destructive text-xs">*</span>
+                      </div>
                       <Input
                         id="primary-email"
                         type="email"
@@ -173,10 +176,12 @@ export default function EmergencyContactsForm({
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
+                      <div className="flex items-center gap-2">
                       <Label htmlFor="secondary-name" className="text-sm">
                         Name
                       </Label>
-<span className="text-destructive text-xs">*</span>
+                      <span className="text-destructive text-xs">*</span>
+                      </div>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -190,10 +195,12 @@ export default function EmergencyContactsForm({
                     </div>
 
                     <div className="space-y-2">
+                      <div className="flex items-center gap-2">
                       <Label htmlFor="secondary-relationship" className="text-sm">
                         Relationship
                       </Label>
-<span className="text-destructive text-xs">*</span>
+                      <span className="text-destructive text-xs">*</span>
+                      </div>
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -207,9 +214,12 @@ export default function EmergencyContactsForm({
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
+                      <div className="flex items-center gap-2">
                       <Label htmlFor="secondary-phone" className="text-sm">
                         Phone Number
                       </Label>
+                      <span className="text-destructive text-xs">*</span>
+                      </div>
                       <div className="relative">
                         <PhoneCall className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
