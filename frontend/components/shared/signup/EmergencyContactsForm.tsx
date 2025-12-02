@@ -176,11 +176,12 @@ export default function EmergencyContactsForm({
                       <Label htmlFor="secondary-name" className="text-sm">
                         Name
                       </Label>
+<span className="text-destructive text-xs">*</span>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           id="secondary-name"
-                          value={formData.emergencyContacts?.secondary?.name || ''}
+                         required value={formData.emergencyContacts?.secondary?.name || ''}
                           onChange={(e) => updateEmergencyContact('secondary', 'name', e.target.value)}
                           placeholder="Full name"
                           className="pl-10"
@@ -192,11 +193,12 @@ export default function EmergencyContactsForm({
                       <Label htmlFor="secondary-relationship" className="text-sm">
                         Relationship
                       </Label>
+<span className="text-destructive text-xs">*</span>
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           id="secondary-relationship"
-                          value={formData.emergencyContacts?.secondary?.relationship || ''}
+                         required value={formData.emergencyContacts?.secondary?.relationship || ''}
                           onChange={(e) => updateEmergencyContact('secondary', 'relationship', e.target.value)}
                           placeholder="e.g., Sibling, Friend"
                           className="pl-10"
@@ -213,7 +215,7 @@ export default function EmergencyContactsForm({
                         <Input
                           id="secondary-phone"
                           type="tel"
-                          value={formData.emergencyContacts?.secondary?.phone || ''}
+                         required value={formData.emergencyContacts?.secondary?.phone || ''}
                           onChange={(e) => updateEmergencyContact('secondary', 'phone', e.target.value)}
                           placeholder="Phone number"
                           className="pl-10"
