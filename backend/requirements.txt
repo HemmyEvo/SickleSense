@@ -8,7 +8,6 @@ requests
 pydantic
 python-dateutil
 Flask-Bcrypt
-scikit-learn
 pandas
 numpy
 joblib
