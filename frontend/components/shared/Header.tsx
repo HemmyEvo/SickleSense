@@ -133,12 +133,7 @@ export default function Header({ user }: any) {
                 >
                   Login
                 </Link>
-                <Link 
-                  href="/signup" 
-                  className="bg-primary text-secondary px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/80 transition-colors border border-white"
-                >
-                  Get Started
-                </Link>
+                
               </div>
             )}
 
@@ -212,17 +207,10 @@ export default function Header({ user }: any) {
                   <div className="pt-4 space-y-3">
                     <Link 
                       href="/login" 
-                      className="block text-base font-medium text-primary hover:text-primary/80 py-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Login
-                    </Link>
-                    <Link 
-                      href="/signup" 
                       className="block bg-white text-gray-900 px-4 py-3 rounded-lg text-base font-medium hover:bg-gray-100 text-center border border-white"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Get Started
+                       Login
                     </Link>
                   </div>
                 </>
