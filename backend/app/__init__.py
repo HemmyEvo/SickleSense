@@ -1,3 +1,18 @@
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+db = SQLAlchemy()
+migrate = Migrate()
+jwt = JWTManager()
+cors = CORS()
+
 def create_app():
     app = Flask(__name__)
 
@@ -13,14 +28,6 @@ def create_app():
     jwt.init_app(app)
     cors.init_app(app)
 
-    # Initialize database tables and load ML models
-    with app.app_context():
-        # This creates the tables if they don't exist yet
-        db.create_all() 
-        
-        from app.services.ml_service import MLService
-        MLService.load_models()
-
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.health import health_bp
@@ -33,6 +40,17 @@ def create_app():
     app.register_blueprint(prediction_bp, url_prefix='/api')
     app.register_blueprint(notifications_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+
+    # Initialize database tables and load ML models
+    with app.app_context():
+        # Importing models here ensures SQLAlchemy sees them before creating tables
+        from app.models import user, health, prediction, notification  # Adjust paths to match your actual model filenames
+        
+        # This checks for existing tables and creates them if they are missing
+        db.create_all() 
+        
+        from app.services.ml_service import MLService
+        MLService.load_models()
 
     @app.route('/api/test')
     def test():
